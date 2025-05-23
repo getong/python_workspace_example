@@ -1,0 +1,192 @@
+#+TITLE: PyO3 Basic Example
+
+* PyO3 Basic Example
+
+This project demonstrates the basics of using PyO3 to create Python extensions in Rust and embed Python in Rust applications.
+
+** What is PyO3?
+
+PyO3 is a Rust library that provides bindings for the Python interpreter. It allows you to:
+- Write native Python extension modules in Rust
+- Embed Python in Rust applications
+- Call Python code from Rust and vice versa
+
+** Project Structure
+
+This example contains two main components:
+
+*** 1. Rust Application with Embedded Python (main.rs)
+A Rust application that embeds Python and demonstrates:
+- Importing Python modules
+- Executing Python code
+- Extracting values from Python to Rust
+
+*** 2. Python Extension Module (lib.rs)
+A Python module written in Rust that provides:
+- A ~sum_as_string~ function that adds two numbers and returns the result as a string
+
+** Prerequisites
+
+- Rust (latest stable version)
+- Python 3.7+
+- ~maturin~ for building Python extensions
+
+
+
+Install maturin:
+#+BEGIN_SRC bash
+pip install maturin
+#+END_SRC
+
+** Quick Setup Script
+
+For a fresh project setup, you can use this shell script:
+
+#+BEGIN_SRC bash
+#!/bin/bash
+# Create and setup pyo3_basic_example project
+
+mkdir pyo3_basic_example
+cd pyo3_basic_example
+python -m venv .env
+source .env/bin/activate
+pip install maturin
+#+END_SRC
+
+Or if you're setting up this existing project:
+
+#+BEGIN_SRC bash
+#!/bin/bash
+# Setup existing pyo3_basic_example project
+
+cd pyo3_basic_example
+python -m venv .env
+source .env/bin/activate
+pip install maturin
+#+END_SRC
+
+** Building and Running
+
+*** Running the Rust Application
+#+BEGIN_SRC bash
+cargo run
+#+END_SRC
+
+This will execute the main.rs file, which:
+1. Gets the Python version
+2. Retrieves the current user from environment variables
+3. Prints a greeting message
+
+*** Building the Python Extension
+#+BEGIN_SRC bash
+maturin develop
+#+END_SRC
+
+This builds the Rust code as a Python module and installs it in your current Python environment.
+
+*** Using the Python Extension
+After building with maturin, you can use the module in Python:
+
+#+BEGIN_SRC python
+import pyo3_basic_example
+
+result = pyo3_basic_example.sum_as_string(5, 20)
+print(result)  # Output: "25"
+#+END_SRC
+
+** Code Examples
+
+*** Rust Function Exposed to Python
+#+BEGIN_SRC rust
+#[pyfunction]
+fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
+    Ok((a + b).to_string())
+}
+#+END_SRC
+
+*** Python Integration in Rust
+#+BEGIN_SRC rust
+Python::with_gil(|py| {
+    let sys = py.import("sys")?;
+    let version: String = sys.getattr("version")?.extract()?;
+
+    let locals = [("os", py.import("os")?)].into_py_dict(py)?;
+    let code = c_str!("os.getenv('USER') or os.getenv('USERNAME') or 'Unknown'");
+    let user: String = py.eval(code, None, Some(&locals))?.extract()?;
+
+    println!("Hello {}, I'm Python {}", user, version);
+    Ok(())
+})
+#+END_SRC
+
+** Configuration
+
+Make sure your ~Cargo.toml~ includes the necessary PyO3 dependencies:
+
+#+BEGIN_SRC
+[dependencies]
+pyo3 = { version = "0.25.0", features = ["auto-initialize"] }
+
+[lib]
+name = "pyo3_basic_example"
+crate-type = ["cdylib"]
+#+END_SRC
+
+** Key PyO3 Concepts Demonstrated
+
+*** 1. GIL Management
+PyO3 uses ~Python::with_gil~ to safely manage Python's Global Interpreter Lock (GIL).
+
+*** 2. Type Conversion
+- ~.extract()~ converts Python objects to Rust types
+- PyO3 automatically handles conversions between compatible types
+
+*** 3. Error Handling
+- Functions return ~PyResult<T>~ for proper error propagation
+- Rust's ~?~ operator works seamlessly with Python exceptions
+
+*** 4. Module Creation
+- ~#[pymodule]~ macro creates Python modules
+- ~#[pyfunction]~ exposes Rust functions to Python
+
+** Performance Benefits
+
+- **Zero-cost abstractions**: PyO3 provides Python integration without significant overhead
+- **Memory safety**: Rust's ownership system prevents common memory errors
+- **Speed**: Rust code typically runs much faster than equivalent Python code
+
+** Common Use Cases
+
+- **Numerical computing**: Accelerate computation-heavy Python code
+- **System integration**: Bridge Python applications with system-level Rust libraries
+- **Web services**: Combine Python's ecosystem with Rust's performance
+- **Data processing**: Speed up data transformation and analysis pipelines
+
+** Error Handling
+
+PyO3 integrates well with Rust's error handling:
+- Python exceptions are converted to Rust ~Result~ types
+- Rust panics are converted to Python exceptions
+- Custom error types can be defined and used across the boundary
+
+** Memory Management
+
+- PyO3 automatically manages reference counting for Python objects
+- Rust's ownership system ensures memory safety
+- No manual memory management required
+
+** Further Reading
+
+- [[https://pyo3.rs/][Official PyO3 Documentation]]
+- [[https://pyo3.rs/v0.25.0/getting-started][Getting Started Guide]]
+- [[https://pyo3.rs/v0.25.0/function][Function Documentation]]
+- [[https://pyo3.rs/v0.25.0/class][Class Documentation]]
+
+** License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+** Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+#+END_SRC
