@@ -48,9 +48,9 @@ For a fresh project setup, you can use this shell script:
 
 mkdir pyo3_basic_example
 cd pyo3_basic_example
-python -m venv .env
+python3 -m venv .env
 source .env/bin/activate
-pip install maturin
+pip3 install maturin
 #+END_SRC
 
 Or if you're setting up this existing project:
@@ -60,9 +60,9 @@ Or if you're setting up this existing project:
 # Setup existing pyo3_basic_example project
 
 cd pyo3_basic_example
-python -m venv .env
+python3 -m venv .env
 source .env/bin/activate
-pip install maturin
+pip3 install maturin
 #+END_SRC
 
 ** Building and Running
@@ -85,7 +85,7 @@ maturin develop
 This builds the Rust code as a Python module and installs it in your current Python environment.
 
 *** Using the Python Extension
-After building with maturin, you can use the module in Python:
+After building with maturin, you can use the module in Python3:
 
 #+BEGIN_SRC python
 import pyo3_basic_example
